@@ -39,10 +39,10 @@ node {
     
     stage("Run Container on AWS SERVER"){
         def dockerRun = "docker run -d -p 8080:8080 --name my-app-${env.BUILD_ID} kashivirus691/k8s-cluster-aws:${env.BUILD_ID}"
-        def base_cmd = "ssh -o StrictHostKeyChecking=no  ubuntu@172.31.3.126"
+        // def base_cmd = "ssh -o StrictHostKeyChecking=no  ubuntu@172.31.3.126"
         
         sshagent(['aws_isntance']) {
-            sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.3.126 ${dockerRun}"
+            sh "ssh -o StrictHostKeyChecking=no ubuntu@13.126.70.18 ${dockerRun}"
         }
     }
     
