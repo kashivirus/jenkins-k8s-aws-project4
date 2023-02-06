@@ -1,11 +1,9 @@
-node{
+node { 
     
     
-    
-    stage("Git Checkout "){
-        checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/kashivirus/jenkins-k8s-aws-project4.git']])
-    
-    
+    stage("check git code"){
+        git branch: 'main', url: 'https://github.com/kashivirus/jenkins-k8s-aws-project4.git'
+    }
     
     stage("Maven Clean Package"){
         def MavenHome = tool name: "Maven", type: "Maven"
