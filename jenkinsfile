@@ -1,0 +1,59 @@
+node{
+    
+    
+    
+    stage("Git Checkout "){
+        checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/kashivirus/jenkins-k8s-aws-project4.git']])
+    
+    
+    
+    stage("Maven Clean Package"){
+        def MavenHome = tool name: "Maven", type: "Maven"
+        def mavenCMD = "${MavenHome}/bin/mvn"
+        sh "${mavenCMD} clean package"
+    }
+    
+    stage("Docker build  images"){
+        sh "docker build -t      kashivirus691/k8s-cluster-aws:${env.BUILD_ID}"
+    }
+    
+    
+    
+    stage("push image to docker hub"){
+        withCredentials([string(credentialsId: 'docker_hub_password', variable: 'docker_hub_password')]) {
+            sh "docker login -u kashivirus691 -p ${docker_hub_password}"
+            }
+            
+            sh "docker push kashivirus691/k8s-cluster-aws:${env.BUILD_ID}"
+    }
+    
+    stage("Push Image in ECR"){
+        ECRURL="https://040245968506.dkr.ecr.ap-south-1.amazonaws.com"
+        ECRRED="ecr:ap-south-1:awscredentials"
+        
+        // aws credential is taken from .csv wala file
+        
+        docker.withRegistry("${ECRURL}" , "${ECRRED}"){
+            docker.image("kashivirus691/k8s-cluster-aws:${env.BUILD_ID}").push()
+        }
+    }
+    
+    
+    stage("Run Container on AWS SERVER"){
+        def dockerRun = "docker run -d -p 8080:8080 --name my-app-${env.BUILD_ID} kashivirus691/k8s-cluster-aws:${env.BUILD_ID}"
+        def base_cmd = "ssh -o StrictHostKeyChecking=no  ubuntu@172.31.3.126"
+        
+        sshagent(['aws_isntance']) {
+            sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.3.126 ${dockerRun}"
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+}
