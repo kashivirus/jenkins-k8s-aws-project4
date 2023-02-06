@@ -12,7 +12,7 @@ node {
 	}
     
     stage("Docker build  images"){
-        sh "docker build -t      kashivirus691/k8s-cluster-aws:${env.BUILD_ID}"
+        sh "docker build -t      kashivirus691/k8s-cluster-aws:${env.BUILD_ID} ."
     }
     
     
