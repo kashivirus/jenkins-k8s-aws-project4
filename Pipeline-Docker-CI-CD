@@ -1,0 +1,30 @@
+node{
+	stage('Git Checkout'){
+		git branch: 'main', credentialsId: 'git_credentials', url: 'https://github.com/amit873/Jenkins-Docker-Kubernetes-Project4.git'
+	}
+
+	stage('Maven Clean Package') {
+		def mavenHome =  tool name: "Maven", type: "maven"
+		def mavenCMD = "${mavenHome}/bin/mvn"
+		sh "${mavenCMD} clean package"
+	}
+	
+	stage('Build Docker Image'){
+		sh "docker build -t ameintu/docker-jenkins:${env.BUILD_ID} ."
+	}
+
+	stage('Push Image to Docker Hub'){
+		withCredentials([string(credentialsId: 'docker_hub', variable: 'docker_hub')]) {
+			sh "docker login -u ameintu -p ${docker_hub}"
+		}
+		sh "docker push ameintu/docker-jenkins:${env.BUILD_ID}"
+	}
+
+	stage('Run Container on AWS Server'){
+		def dockerRun = "docker run -d -p 8080:8080 --name myapp-${env.BUILD_ID} ameintu/docker-jenkins:${env.BUILD_ID}"
+		sshagent(['aws_instance']) {
+			sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.31.83 ${dockerRun}"
+		}
+	}
+
+}
